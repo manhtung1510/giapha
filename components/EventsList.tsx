@@ -261,40 +261,58 @@ export default function EventsList({
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-start justify-between gap-4"
+        className="relative overflow-hidden rounded-3xl bg-white border border-stone-200/60 shadow-sm hover:shadow-stone-100 hover:border-stone-400 transition-all duration-300 mb-8 p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6"
       >
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-3">
-            <CalendarDays className="size-5 text-amber-600 shrink-0" />
-            <p className="text-sm font-semibold text-amber-900 leading-tight">
-              Hôm nay: {todayDate.solar}
-              {todayDate.lunar && (
-                <span className="font-normal text-amber-700 ml-1">
-                  ({todayDate.lunar})
-                </span>
-              )}
-            </p>
+        {/* Subtle background flair */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-50/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none opacity-50"></div>
+
+        <div className="relative flex items-center gap-4 sm:gap-6">
+          <div className="size-16 rounded-2xl bg-stone-50 flex items-center justify-center shrink-0 border border-stone-100 shadow-sm text-stone-600">
+            <CalendarDays className="size-8" />
           </div>
-          {(todayCount > 0 || soonCount > 0) && (
-            <div className="flex items-center gap-3 mt-1">
-              <span className="text-xl shrink-0 leading-none">🎊</span>
-              <p className="text-sm font-medium text-amber-800 leading-tight">
-                {todayCount > 0 && (
-                  <span className="font-bold">
-                    {todayCount} sự kiện hôm nay
-                  </span>
-                )}
-                {todayCount > 0 && soonCount > 0 && " · "}
-                {soonCount > 0 && (
-                  <span>{soonCount} sự kiện trong 7 ngày tới</span>
-                )}
+          <div>
+            <p className="text-xl sm:text-2xl font-bold text-stone-800 tracking-tight">
+              {todayDate.solar}
+            </p>
+            {todayDate.lunar && (
+              <div className="mt-2.5 inline-flex flex-wrap items-center gap-2 px-3.5 py-1 rounded-full bg-stone-50 border border-stone-100">
+                <span className="text-xs font-medium text-stone-500 uppercase tracking-wider">
+                  Âm lịch:
+                </span>
+                <span className="text-sm font-semibold text-stone-700">
+                  {todayDate.lunar}
+                </span>
+              </div>
+            )}
+            {(todayCount > 0 || soonCount > 0) && (
+              <p className="text-sm text-stone-500 mt-3 flex items-start sm:items-center gap-2.5 font-medium">
+                <span className="relative flex size-2.5 shrink-0 mt-1 sm:mt-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full size-2.5 bg-amber-500"></span>
+                </span>
+                <span className="flex flex-wrap items-center gap-1.5">
+                  {todayCount > 0 && (
+                    <span className="font-semibold text-stone-700">
+                      {todayCount} sự kiện hôm nay
+                    </span>
+                  )}
+                  {todayCount > 0 && soonCount > 0 && (
+                    <span className="hidden sm:inline">·</span>
+                  )}
+                  {soonCount > 0 && (
+                    <span>{soonCount} sự kiện trong 7 ngày tới</span>
+                  )}
+                </span>
               </p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
-        <button onClick={handleOpenCreateModal} className="btn-primary">
-          <Plus className="size-4" />
+        <button
+          onClick={handleOpenCreateModal}
+          className="relative z-10 w-full sm:w-auto px-5 py-3 rounded-xl bg-stone-800 text-white font-semibold hover:bg-stone-900 active:scale-95 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+        >
+          <Plus className="size-5 text-stone-300" />
           <span>Thêm sự kiện</span>
         </button>
       </motion.div>

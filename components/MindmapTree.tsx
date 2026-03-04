@@ -19,6 +19,12 @@ import { useDashboard } from "./DashboardContext";
 import DefaultAvatar from "./DefaultAvatar";
 import ExportButton from "./ExportButton";
 
+import {
+  AdjacencyLists,
+  buildAdjacencyLists,
+  getFilteredTreeData,
+} from "@/utils/treeHelpers";
+
 interface MindmapTreeProps {
   personsMap: Map<string, Person>;
   relationships: Relationship[];
@@ -29,6 +35,7 @@ interface MindmapTreeProps {
 interface MindmapContextData {
   personsMap: Map<string, Person>;
   relationships: Relationship[];
+  adj: AdjacencyLists;
   hideSpouses: boolean;
   hideMales: boolean;
   hideFemales: boolean;
@@ -39,59 +46,11 @@ interface MindmapContextData {
 
 // Helper function to resolve tree connections for a person
 const getTreeData = (personId: string, ctx: MindmapContextData) => {
-  const { relationships, personsMap, hideSpouses, hideMales, hideFemales } =
-    ctx;
-  const spousesList = relationships
-    .filter(
-      (r) =>
-        r.type === "marriage" &&
-        (r.person_a === personId || r.person_b === personId),
-    )
-    .map((r) => {
-      const spouseId = r.person_a === personId ? r.person_b : r.person_a;
-      return {
-        person: personsMap.get(spouseId)!,
-        note: r.note,
-      };
-    })
-    .filter((s) => s.person)
-    .filter((s) => {
-      if (hideSpouses) return false;
-      if (hideMales && s.person.gender === "male") return false;
-      if (hideFemales && s.person.gender === "female") return false;
-      return true;
-    });
-
-  const childRels = relationships.filter(
-    (r) =>
-      (r.type === "biological_child" || r.type === "adopted_child") &&
-      r.person_a === personId,
-  );
-
-  const childrenList = (
-    childRels.map((r) => personsMap.get(r.person_b)).filter(Boolean) as Person[]
-  )
-    .filter((c) => {
-      if (hideMales && c.gender === "male") return false;
-      if (hideFemales && c.gender === "female") return false;
-      return true;
-    })
-    .sort((a, b) => {
-      // 1. birth_order ascending (null → pushed to end)
-      const aOrder = a.birth_order ?? Infinity;
-      const bOrder = b.birth_order ?? Infinity;
-      if (aOrder !== bOrder) return aOrder - bOrder;
-      // 2. birth_year ascending (null → pushed to end)
-      const aYear = a.birth_year ?? Infinity;
-      const bYear = b.birth_year ?? Infinity;
-      return aYear - bYear;
-    });
-
-  return {
-    person: personsMap.get(personId)!,
-    spouses: spousesList,
-    children: childrenList,
-  };
+  return getFilteredTreeData(personId, ctx.personsMap, ctx.adj, {
+    hideSpouses: ctx.hideSpouses,
+    hideMales: ctx.hideMales,
+    hideFemales: ctx.hideFemales,
+  });
 };
 
 const MindmapNode = memo(
@@ -388,28 +347,30 @@ export default function MindmapTree({
     };
   }, []);
 
-  const ctx: MindmapContextData = useMemo(
-    () => ({
+  const ctx: MindmapContextData = useMemo(() => {
+    const adj = buildAdjacencyLists(relationships, personsMap);
+
+    return {
       personsMap,
       relationships,
+      adj,
       hideSpouses,
       hideMales,
       hideFemales,
       showAvatar,
       expandSignal,
       setMemberModalId,
-    }),
-    [
-      personsMap,
-      relationships,
-      hideSpouses,
-      hideMales,
-      hideFemales,
-      showAvatar,
-      expandSignal,
-      setMemberModalId,
-    ],
-  );
+    };
+  }, [
+    personsMap,
+    relationships,
+    hideSpouses,
+    hideMales,
+    hideFemales,
+    showAvatar,
+    expandSignal,
+    setMemberModalId,
+  ]);
 
   if (roots.length === 0) {
     return (
